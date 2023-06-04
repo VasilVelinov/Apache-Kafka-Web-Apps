@@ -1,0 +1,39 @@
+- name: CentOS - Install MariaDb-Server
+  dnf:
+    name: mariadb-server
+    state: present
+
+- name: CentOS - Install MariaDb
+  dnf:
+    name: mariadb
+    state: present
+
+- name: CetOS - Install Git
+  dnf:
+    name: git
+    state: present
+
+- name: Clone Repository
+  git:
+    repo: https://github.com/shekeriev/do2-app-pack.git
+    dest: /code
+
+- name: CentOS - Start and Enable MariaDB
+  service: 
+    name: mariadb 
+    state: started 
+    enabled: true
+
+
+- name: CentOS - Open HTTP Port in the Firewall
+  firewalld:
+    port: 3306/tcp
+    permanent: true
+    state: enabled
+    immediate: true
+
+- name: CentOS - Run SQL script
+  shell: mysql -u root --password=root < /code/app2/db/db_setup.sql
+
+- name: CentOS - Run SQL script
+  shell: mysql -u root --password=root < /code/app4/db/db_setup.sql

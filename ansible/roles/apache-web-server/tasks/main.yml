@@ -1,0 +1,13 @@
+---
+  - import_tasks: redhat.yml
+    when: ansible_os_family|lower == 'redhat'
+  - import_tasks: debian.yml
+    when: ansible_os_family|lower == 'debian'
+
+  - name: Add hosts entries
+    ansible.builtin.lineinfile:
+      path: /etc/hosts
+      line: "{{ item }}"
+    loop:
+      - "192.168.56.101 web web.do2.lab"
+      - "192.168.56.102 db db.do2.lab"

@@ -1,0 +1,64 @@
+- name: Debian - Collect package information
+  package_facts:
+     manager: auto
+
+- name: Debian - Install prerequisites
+  apt: name={{ item }} update_cache=yes state=latest force_apt_get=yes
+  loop: [ 'aptitude' ]
+
+  #Apache Configuration
+- name: Debian - Install Apache and PHP Packages
+  apt: name={{ item }} update_cache=yes state=latest
+  loop: [ 'apache2', 'php', 'php-mysql', 'libapache2-mod-php', 'git' ]
+
+
+- name: Clone Repository
+  git:
+    repo: https://github.com/shekeriev/do2-app-pack.git
+    dest: /code
+
+- name: Debian - Start and Enable Apache HTTP Server
+  service: 
+    name: apache2 
+    state: started 
+    enabled: true
+
+- name: Create virtual host configuration file for app4
+  copy:
+    content: |
+      Listen 8002
+      <VirtualHost *:8002>
+          DocumentRoot "/var/www/app4"
+      </VirtualHost>
+    dest: /etc/apache2/sites-available/vhost-app4.conf
+
+- name: Enable virtual host app4
+  command: a2ensite vhost-app4.conf
+  args:
+    chdir: /etc/apache2/sites-available/
+
+- name: Create virtual host configuration file for app2
+  copy:
+    content: |
+      Listen 8001
+      <VirtualHost *:8001>
+          DocumentRoot "/var/www/app2"
+      </VirtualHost>
+    dest: /etc/apache2/sites-available/vhost-app2.conf
+
+- name: Enable virtual host app2
+  command: a2ensite vhost-app2.conf
+  args:
+    chdir: /etc/apache2/sites-available/
+
+- name: Debian - Copy app4
+  copy: src=/code/app4/web/ dest=/var/www/app4
+
+- name: Debian - Copy app2
+  copy: src=/code/app2/web/ dest=/var/www/app2
+
+
+- name: Restart Apache
+  service:
+    name: apache2
+    state: restarted
